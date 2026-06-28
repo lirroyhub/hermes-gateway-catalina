@@ -1,0 +1,29 @@
+# This repo ships scripts only — never commit Hermes data, sessions, or creds.
+# (Defensive: in case anyone runs/clones inside their ~/.hermes by mistake.)
+
+# Hermes bridge artifacts
+node_modules/
+package-lock.json
+package.json.bak.*
+package.json.hermes-original
+
+# WhatsApp session / auth (NEVER commit — these are live credentials)
+whatsapp/
+session/
+*.session
+auth.json
+*_token.json
+google_client_secret.json
+
+# Logs
+*.log
+/tmp/*.log
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*~
+.vscode/
+.idea/

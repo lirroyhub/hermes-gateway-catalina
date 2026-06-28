@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.hermes.gateway-catalina.plist.example
+
+  OPTIONAL. A launchd user-agent that runs the Catalina wrapper at login and
+  keeps it alive (auto-restart on crash). This is the native macOS equivalent
+  of a systemd service, and an alternative to the service that
+  `hermes gateway install` registers — the difference is that THIS one runs the
+  wrapper, so the WhatsApp Catalina fix is re-applied on every (re)start.
+
+  SETUP
+  -----
+  1. Edit the placeholders below:
+       - REPLACE_WITH_ABSOLUTE_PATH_TO_REPO  -> where you cloned this repo
+         (e.g. /Users/you/hermes-whatsapp-catalina)
+       - REPLACE_WITH_NODE_20_BIN_DIR        -> the directory containing the
+         node 20 binary, so launchd's PATH can find it. With nvm this is
+         something like /Users/you/.nvm/versions/node/v20.20.2/bin
+         Find it with:  dirname "$(nvm which 20)"   (or:  dirname "$(which node)")
+       - REPLACE_WITH_YOUR_USERNAME          -> your macOS short username
+
+  2. Copy it into place (note: drop the .example suffix):
+       cp com.hermes.gateway-catalina.plist.example \
+          ~/Library/LaunchAgents/com.hermes.gateway-catalina.plist
+
+  3. Load it:
+       launchctl load  ~/Library/LaunchAgents/com.hermes.gateway-catalina.plist
+       launchctl start com.hermes.gateway-catalina
+
+  4. Logs go to /tmp/hermes-gateway-catalina.{out,err}.log (see keys below).
+
+  TO STOP / REMOVE
+  ----------------
+       launchctl stop   com.hermes.gateway-catalina
+       launchctl unload ~/Library/LaunchAgents/com.hermes.gateway-catalina.plist
+
+  IMPORTANT: do NOT also run `hermes gateway install` or a Docker gateway that
+  has WhatsApp enabled at the same time — two gateways sharing ~/.hermes will
+  fight over the WhatsApp session and the SQLite state. Pick one.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.hermes.gateway-catalina</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>REPLACE_WITH_ABSOLUTE_PATH_TO_REPO/hermes-gateway-catalina.sh</string>
+    </array>
+
+    <!-- Run at login and keep alive (restart on crash/exit). -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- launchd starts with a minimal PATH. Add the Node 20 bin dir (and the
+         usual locations) so `node`, `npm`, and `hermes` resolve. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>REPLACE_WITH_NODE_20_BIN_DIR:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/REPLACE_WITH_YOUR_USERNAME</string>
+    </dict>
+
+    <!-- Throttle restarts so a hard-failing start doesn't spin in a tight loop. -->
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/hermes-gateway-catalina.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/hermes-gateway-catalina.err.log</string>
+</dict>
+</plist>
